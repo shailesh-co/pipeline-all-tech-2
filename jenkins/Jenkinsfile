@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         FRONT_IMAGE = 'shailesh01/ui-frontend:latest'
-        BACK_IMAGE = 'shailesh01/node-backend:latest'
+        BACK_IMAGE  = 'shailesh01/node-backend:latest'
     }
 
     options {
@@ -23,7 +23,9 @@ pipeline {
             steps {
                 wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
                     dir('UI-FrontEnd') {
-                        sh 'docker build -t $FRONT_IMAGE -f ../docker/frontend.Dockerfile .'
+                        script {
+                            sh "docker build -t ${env.FRONT_IMAGE} -f ../docker/frontend.Dockerfile ."
+                        }
                     }
                 }
             }
@@ -33,7 +35,9 @@ pipeline {
             steps {
                 wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
                     dir('node-backend') {
-                        sh 'docker build -t $BACK_IMAGE -f ../docker/backend.Dockerfile .'
+                        script {
+                            sh "docker build -t ${env.BACK_IMAGE} -f ../docker/backend.Dockerfile ."
+                        }
                     }
                 }
             }
@@ -44,7 +48,7 @@ pipeline {
                 wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                         sh '''
-                            echo $PASS | docker login -u $USER --password-stdin
+                            echo "$PASS" | docker login -u "$USER" --password-stdin
                             docker push $FRONT_IMAGE
                             docker push $BACK_IMAGE
                             docker logout
@@ -57,7 +61,7 @@ pipeline {
         stage('Deploy to Server via Ansible') {
             steps {
                 wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-                    sh 'ansible-playbook ansible/deploy.yaml -i localhost,'
+                    sh 'ansible-playbook ansible/deploy.yaml -i inventory/hosts'
                 }
             }
         }
