@@ -8,48 +8,57 @@ pipeline {
 
     options {
         timestamps()
-        ansiColor('xterm')
     }
 
     stages {
         stage('Clone Git Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/shailesh-co/pipeline-all-tech-2.git'
+                wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+                    git branch: 'main', url: 'https://github.com/shailesh-co/pipeline-all-tech-2.git'
+                }
             }
         }
 
         stage('Build Frontend Docker Image') {
             steps {
-                dir('UI-FrontEnd') {
-                    sh 'docker build -t $FRONT_IMAGE -f ../docker/frontend.Dockerfile .'
+                wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+                    dir('UI-FrontEnd') {
+                        sh 'docker build -t $FRONT_IMAGE -f ../docker/frontend.Dockerfile .'
+                    }
                 }
             }
         }
 
         stage('Build Backend Docker Image') {
             steps {
-                dir('node-backend') {
-                    sh 'docker build -t $BACK_IMAGE -f ../docker/backend.Dockerfile .'
+                wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+                    dir('node-backend') {
+                        sh 'docker build -t $BACK_IMAGE -f ../docker/backend.Dockerfile .'
+                    }
                 }
             }
         }
 
         stage('Push Docker Images to Docker Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    sh '''
-                        echo $PASS | docker login -u $USER --password-stdin
-                        docker push $FRONT_IMAGE
-                        docker push $BACK_IMAGE
-                        docker logout
-                    '''
+                wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                        sh '''
+                            echo $PASS | docker login -u $USER --password-stdin
+                            docker push $FRONT_IMAGE
+                            docker push $BACK_IMAGE
+                            docker logout
+                        '''
+                    }
                 }
             }
         }
 
         stage('Deploy to Server via Ansible') {
             steps {
-                sh 'ansible-playbook ansible/deploy.yaml -i localhost,'
+                wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+                    sh 'ansible-playbook ansible/deploy.yaml -i localhost,'
+                }
             }
         }
     }
