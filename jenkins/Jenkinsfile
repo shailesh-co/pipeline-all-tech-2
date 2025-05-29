@@ -1,5 +1,5 @@
 pipeline {
-     agent any
+    agent any
 
     environment {
         FRONT_IMAGE = 'shailesh01/ui-frontend:latest'
@@ -22,9 +22,13 @@ pipeline {
         stage('Build Frontend Docker Image') {
             steps {
                 wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-                    dir('UI-FrontEnd') {
+                    dir('UI-FrontEnd/sample-ng-project') {
                         script {
-                            sh "docker build -t ${env.FRONT_IMAGE} -f ../docker/frontend.Dockerfile ."
+                            // Optional: Run Angular build before Docker build if needed
+                            sh 'npm install'
+                            sh 'npm run build --prod'
+
+                            sh "docker build -t ${env.FRONT_IMAGE} ."
                         }
                     }
                 }
@@ -36,7 +40,7 @@ pipeline {
                 wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
                     dir('node-backend') {
                         script {
-                            sh "docker build -t ${env.BACK_IMAGE} -f ../docker/backend.Dockerfile ."
+                            sh "docker build -t ${env.BACK_IMAGE} ."
                         }
                     }
                 }
