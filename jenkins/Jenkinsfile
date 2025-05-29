@@ -6,10 +6,15 @@ pipeline {
         BACK_IMAGE = 'shailesh01/node-backend:latest'
     }
 
+    options {
+        timestamps()
+        ansiColor('xterm')
+    }
+
     stages {
-        stage('Clone Repo') {
+        stage('Clone Git Repository') {
             steps {
-                 git branch: 'main', url: 'https://github.com/shailesh-co/pipeline-all-tech-2.git'
+                git branch: 'main', url: 'https://github.com/shailesh-co/pipeline-all-tech-2.git'
             }
         }
 
@@ -29,22 +34,33 @@ pipeline {
             }
         }
 
-        stage('Push Docker Images') {
+        stage('Push Docker Images to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     sh '''
                         echo $PASS | docker login -u $USER --password-stdin
                         docker push $FRONT_IMAGE
                         docker push $BACK_IMAGE
+                        docker logout
                     '''
                 }
             }
         }
 
-        stage('Deploy with Ansible') {
+        stage('Deploy to Server via Ansible') {
             steps {
                 sh 'ansible-playbook ansible/deploy.yaml -i localhost,'
             }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline completed.'
+            cleanWs()
+        }
+        failure {
+            echo 'Pipeline failed. Please check the error logs above.'
         }
     }
 }
