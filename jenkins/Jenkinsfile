@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Clone Repo') {
             steps {
-                git branch: 'main', url: 'https://github.com/shailesh-co/pipeline-all-tech-2.git'
+                 git branch: 'main', url: 'https://github.com/shailesh-co/pipeline-all-tech-2.git'
             }
         }
 
