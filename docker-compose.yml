@@ -1,0 +1,28 @@
+version: '3'
+services:
+  backend:
+    build: ./node-backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./node-backend/.env
+    volumes:
+      - ./node-backend:/app
+    depends_on:
+      - mongo
+
+  frontend:
+    build: ./UI-FrontEnd/sample-ng-project
+    ports:
+      - "4300:80"
+
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
