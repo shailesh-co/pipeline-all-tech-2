@@ -1,0 +1,14 @@
+- name: Deploy Angular and Node.js apps on Kubernetes
+  hosts: localhost
+  tasks:
+    - name: Apply frontend deployment
+      shell: kubectl apply -f ../k8s/frontend-deployment.yaml
+
+    - name: Apply backend deployment
+      shell: kubectl apply -f ../k8s/backend-deployment.yaml
+
+    - name: Apply frontend service
+      shell: kubectl apply -f ../k8s/services/frontend-service.yaml
+
+    - name: Apply backend service
+      shell: kubectl apply -f ../k8s/services/backend-service.yaml

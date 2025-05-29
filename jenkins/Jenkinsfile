@@ -1,0 +1,50 @@
+pipeline {
+    agent any
+
+    environment {
+        FRONT_IMAGE = 'shailesh01/ui-frontend:latest'
+        BACK_IMAGE = 'shailesh01/node-backend:latest'
+    }
+
+    stages {
+        stage('Clone Repo') {
+            steps {
+                git 'https://github.com/shailesh-co/pipeline-all-tech-2.git'
+            }
+        }
+
+        stage('Build Frontend Docker Image') {
+            steps {
+                dir('UI-FrontEnd') {
+                    sh 'docker build -t $FRONT_IMAGE -f ../docker/frontend.Dockerfile .'
+                }
+            }
+        }
+
+        stage('Build Backend Docker Image') {
+            steps {
+                dir('node-backend') {
+                    sh 'docker build -t $BACK_IMAGE -f ../docker/backend.Dockerfile .'
+                }
+            }
+        }
+
+        stage('Push Docker Images') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh '''
+                        echo $PASS | docker login -u $USER --password-stdin
+                        docker push $FRONT_IMAGE
+                        docker push $BACK_IMAGE
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy with Ansible') {
+            steps {
+                sh 'ansible-playbook ansible/deploy.yaml -i localhost,'
+            }
+        }
+    }
+}
