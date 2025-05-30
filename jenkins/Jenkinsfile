@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         FRONT_IMAGE = 'shailesh01/ui-frontend:latest'
-        BACK_IMAGE  = 'shailesh01/node-backend:latest'
     }
 
     options {
@@ -35,17 +34,6 @@ pipeline {
             }
         }
 
-        stage('Build Backend Docker Image') {
-            steps {
-                wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-                    dir('node-backend') {
-                        script {
-                            sh "docker build -t ${env.BACK_IMAGE} ."
-                        }
-                    }
-                }
-            }
-        }
 
         stage('Push Docker Images to Docker Hub') {
             steps {
@@ -54,7 +42,7 @@ pipeline {
                         sh '''
                             echo "$PASS" | docker login -u "$USER" --password-stdin
                             docker push $FRONT_IMAGE
-                            docker push $BACK_IMAGE
+                        
                             docker logout
                         '''
                     }
