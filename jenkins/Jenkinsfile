@@ -23,26 +23,30 @@ pipeline {
                 wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
                     dir('UI-FrontEnd/sample-ng-project') {
                         script {
-                            // Optional: Run Angular build before Docker build if needed
-                            sh 'npm install'
-                            sh 'npm run build --prod'
+                            sh '''
+                                # Ensure clean install
+                                npm cache clean --force
+                                npm install
 
-                            sh "docker build -t ${env.FRONT_IMAGE} ."
+                                # If Angular CLI is not global, run via npx
+                                npx ng build --configuration production
+                                
+                                # Then build Docker image
+                                docker build -t ${FRONT_IMAGE} .
+                            '''
                         }
                     }
                 }
             }
         }
 
-
-        stage('Push Docker Images to Docker Hub') {
+        stage('Push Docker Image to Docker Hub') {
             steps {
                 wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                         sh '''
                             echo "$PASS" | docker login -u "$USER" --password-stdin
                             docker push $FRONT_IMAGE
-                        
                             docker logout
                         '''
                     }
