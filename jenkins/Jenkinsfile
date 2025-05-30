@@ -24,14 +24,14 @@ pipeline {
                     dir('UI-FrontEnd/sample-ng-project') {
                         script {
                             sh '''
-                                # Ensure clean install
+                                echo "Cleaning and installing dependencies..."
                                 npm cache clean --force
                                 npm install
 
-                                # If Angular CLI is not global, run via npx
+                                echo "Building Angular app..."
                                 npx ng build --configuration production
-                                
-                                # Then build Docker image
+
+                                echo "Building Docker image..."
                                 docker build -t ${FRONT_IMAGE} .
                             '''
                         }
